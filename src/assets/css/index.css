@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  user-select: none;
+}
+
+body {
+  @apply bg-purple-950;
+}
+
+@media (min-width: 640px) {
+  .bg-dots {
+    background-image: url("/images/svg/dotsbg.svg"),
+      url("/images/svg/dotsbg.svg");
+    background-position: left 5% center, right 5% center;
+    background-size: auto 80%;
+    background-repeat: no-repeat;
+  }
+}
+/* button {
+  @apply focus:outline-none;
+} */
+
+.input-group {
+  border: 4px solid #ee8d94;
+  box-sizing: border-box;
+  border-radius: 5px;
+}
+
+input[type="number"] {
+  -webkit-appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  font-size: 1.3rem;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
