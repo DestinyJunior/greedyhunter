@@ -19,5 +19,6 @@
     "postcss": "^8.2.9",
     "tailwindcss": "^2.0.4",
     "vite": "^2.1.5"
-  }
+  },
+  "license": "MIT"
 }
