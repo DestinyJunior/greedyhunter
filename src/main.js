@@ -6,6 +6,7 @@ import gameStore from "./core/store/store.js";
 
 // import index css
 import "./assets/css/index.css";
+import "animate.css";
 
 // vue app instance
 const GameApp = createApp(App);

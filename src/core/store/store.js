@@ -4,18 +4,42 @@ import { createStore } from "vuex";
 const gameStore = createStore({
   state() {
     return {
-      count: 0,
-      gridSize: 5,
+      size: 0,
+      foodEaten: null,
+      totalFood: null,
+      timeSpent: null,
     };
   },
+  // getters: {
+  //   size(state) {
+  //     return state.size;
+  //   },
+  //   foodEaten(state) {
+  //     return state.foodEaten;
+  //   },
+  //   totalFood(state) {
+  //     return state.totalFood;
+  //   },
+  //   timeSpent(state) {
+  //     return state.timeSpent;
+  //   },
+  // },
   actions: {
     addGridSize(context, size) {
-      context.commit("addGridCount", size);
+      context.commit("SET_GRID", size);
+    },
+    gameFinished(context, data) {
+      context.commit("SET_GAME_FINISHED_DATA", data);
     },
   },
   mutations: {
-    addGridCount(state, size) {
-      state.gridSize = size <= 20 ? size : 5;
+    SET_GRID(state, size) {
+      state.size = size;
+    },
+    SET_GAME_FINISHED_DATA(state, data) {
+      state.foodEaten = data.foodEaten;
+      state.totalFood = data.totalFood;
+      state.timeSpent = data.timeSpent;
     },
   },
 });

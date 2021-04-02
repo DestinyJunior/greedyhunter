@@ -15,8 +15,27 @@
         >
           <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div
-              class="w-full flex flex-col items-center justify-center space-y-5"
+              class="w-full bg-white flex flex-col items-center justify-center space-y-5 rounded-lg px-7 py-4"
             >
+              <div class="w-full flex items-center justify-between">
+                <span class="text-purple-990 text-sm"
+                  >Grid:
+                  <span class="font-bold">{{ rows + " x " + cols }}</span></span
+                >
+                <div>
+                  <Progress
+                    :timeLimit="timeSec"
+                    v-on:timepassed="setTimePassed"
+                  />
+                </div>
+                <span class="text-purple-990 text-sm"
+                  >Time spent:
+                  <span class="font-bold"
+                    ><Timer :endDate="endGameDate" v-on:gameover="gameOver" />
+                    secs</span
+                  ></span
+                >
+              </div>
               <div class="card">
                 <div class="card-top"></div>
                 <div class="grids">
@@ -25,16 +44,28 @@
                       <div v-for="(col, colIndex) in rows" :key="colIndex">
                         <!-- insert player position -->
 
-                        <div
+                        <span
+                          @click="makeMove(`${rowIndex}${colIndex}`)"
                           class="cols flex items-center justify-center"
                           :id="'col-' + rowIndex + colIndex"
                         >
-                          <!-- {{ rowIndex + " " + colIndex }} -->
-                        </div>
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div class="w-full flex items-center justify-between">
+                <span class="text-purple-990 text-sm"
+                  >Maximum moves:
+                  <span class="font-bold">{{ maxMoves }}</span></span
+                >
+
+                <span class="text-purple-990 text-sm"
+                  >Total moves:
+                  <span class="font-bold">{{ totalMoves }}</span></span
+                >
               </div>
             </div>
           </div>
@@ -45,42 +76,326 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import Timer from "../components/Timer.vue";
+import Progress from "../components/Progress.vue";
+
+import { onBeforeRouteLeave } from "vue-router";
+
+import { ref, onMounted, watch } from "vue";
+import router from "../core/router.js";
+import store from "../core/store/store.js";
 
 // intialise variables
-const rows = ref(10);
-const cols = ref(10);
-
+const rows = ref(store.state.size);
+const cols = ref(store.state.size);
+let totalMoves = ref(0);
+let totalFoodGenerated = ref(0);
+let foodEaten = ref(0);
 let playerPosition = ref(0);
+
+const maxMoves = ref(cols.value * Math.floor(cols.value / 2));
+
+const timePassed = ref(0);
+
+const playerElement = `<img src="/images/svg/player.svg" class="w-6 z-50" alt="player" />`;
 
 playerPosition = Math.floor(Math.random() * cols.value);
 
-console.log({ rows, cols, playerPosition });
+const foods = ref(cols.value * 3);
+
+// console.log({ rows, cols, playerPosition });
 
 let playerColId = ref("");
 playerColId = `col-${playerPosition}${playerPosition}`;
 
-let foodPosition = ref(0);
-foodPosition = Math.floor(Math.random * cols.value);
+let gridValues = ref([]);
+
+// time
+const timeSec = foods.value;
+
+let now = new Date();
+var end = now.setSeconds(now.getSeconds() + timeSec);
+const endGameDate = new Date(end);
+
+// values of the rows and cols for validation
+
+const generateArrayValuesForGrid = () => {
+  for (var row = 0; row < rows.value; ++row) {
+    for (var col = 0; col < cols.value; ++col) {
+      var index = `${row}${col}`;
+      gridValues.value.push(index);
+    }
+  }
+
+  // console.log(gridValues.value);
+};
+
+// let foodPosition = ref(0);
+// foodPosition = Math.floor(Math.random * cols.value);
 
 let foodPositions = ref([]);
 
-// insert food position  into an array
-for (var i = 0; i <= 10; i++) {
-  if (foodPosition != playerPosition) {
-    console.log(foodPosition.value);
-    foodPositions.value.push(foodPosition.value);
+const calculateFoodPosition = () => {
+  // console.log(playerPosition);
+  // insert food position  into an array
+  for (var i = 0; i <= foods.value; ++i) {
+    var foodPosR = Math.floor(Math.random() * rows.value);
+    var foodPosC = Math.floor(Math.random() * cols.value);
+
+    // console.log(foodPosR, foodPosC);
+    let foodPos = `col-${foodPosR}${foodPosC}`;
+
+    // insertion
+    if (
+      foodPositions.value.indexOf(foodPos) === -1 &&
+      !foodPos.includes(playerPosition.toString())
+    ) {
+      foodPositions.value.push(foodPos);
+    }
   }
-}
 
-console.log(foodPositions.value);
+  totalFoodGenerated.value = foodPositions.value.length;
+  // totalFoodGenerated = foodPositions.value.length;
+  // console.log();
+};
 
-onMounted(
-  () =>
-    (document.getElementById(
-      playerColId
-    ).innerHTML = `<img src="/images/svg/player.svg" class="w-9" alt="player" />`)
+// display food on grid
+const insertFoodsOnGrid = () => {
+  foodPositions.value.forEach((colId) => {
+    // console.log(colId);
+    document.getElementById(
+      colId
+    ).innerHTML = `<img src="/images/svg/food.svg" class="w-6" alt="food" />`;
+  });
+};
+
+const insertPlayer = () => {
+  // insert player id
+  document.getElementById(playerColId).innerHTML = playerElement;
+};
+
+// make move
+const makeMove = (step) => {
+  var stepId = `col-${step}`;
+  // check if current player position is clicked
+  if (stepId === playerColId) {
+    return;
+  }
+
+  //
+  // console.log(step, playerColId);
+
+  // calculate distance between player and food
+  var distance = step - parseInt(playerColId.split("-")[1]);
+
+  // check if movement is left, right, up or down
+  if (
+    distance === -1 ||
+    distance === 1 ||
+    distance === -10 ||
+    distance === 10
+  ) {
+    // move left
+    // console.log(distance);
+    eatFood({ stepTo: step, stepFrom: playerColId });
+  }
+};
+
+// eat food on array
+const eatFood = ({ stepTo, stepFrom }) => {
+  // console.log({ stepTo, stepFrom });
+
+  // check if stepTo contains food
+  var colId = `col-${stepTo}`;
+  // console.log(colId);
+
+  var isFood = checkFood(colId);
+
+  // moveplayer to next div
+  movePlayer({ stepToId: colId, stepFromId: stepFrom, isFood: isFood });
+};
+
+// move player to position
+const movePlayer = ({ stepToId, stepFromId, isFood }) => {
+  playerColId = stepToId;
+  playerPosition = stepToId.split("-")[1][1];
+
+  // console.log(playerPosition, playerColId);
+  // insert player id
+  document.getElementById(stepToId).innerHTML = playerElement;
+
+  // remove player id from step from
+  document.getElementById(stepFromId).innerHTML = null;
+
+  // calculate total food eaten
+  if (isFood) {
+    //increment total food eaten and total moves
+    foodEaten.value++;
+    totalMoves.value++;
+    // calulate remaining food
+    calcRemFood(stepFromId);
+  } else {
+    //increment total moves
+    totalMoves.value++;
+  }
+};
+
+// check if grid contains food
+const checkFood = (colId) => {
+  // console.log(colId, "check food");
+  var childElements = document.getElementById(colId).childNodes[0];
+
+  if (typeof childElements === "undefined") {
+    return false;
+  }
+
+  return true;
+};
+
+// calculate remainging food
+const calcRemFood = (currentFood) => {
+  // console.log(currentFood);
+  var colIndex = foodPositions.value.indexOf(currentFood);
+
+  foodPositions.value.splice(colIndex, 1);
+
+  // console.log(foodPositions.value);
+};
+
+// make keyboard event move
+const makeKeyboardMove = (stepType) => {
+  // console.log(playerColId, stepType);
+  let numberPos = playerColId.split("-")[1];
+  let nextStep = 0;
+  // down, up, left, right
+  if (stepType === "d") {
+    nextStep = parseInt(numberPos) + 10;
+    movePlayerKeyboard(nextStep);
+  } else if (stepType === "u") {
+    nextStep = parseInt(numberPos) - 10;
+    movePlayerKeyboard(nextStep);
+  } else if (stepType === "l") {
+    nextStep = parseInt(numberPos) - 1;
+    movePlayerKeyboard(nextStep);
+  } else if (stepType === "r") {
+    nextStep = parseInt(numberPos) + 1;
+    movePlayerKeyboard(nextStep);
+  }
+};
+
+const movePlayerKeyboard = (step) => {
+  // next col might not be in the grid cols, then use grid valuesto verify
+  var value = gridValues.value.indexOf(step.toString());
+
+  if (step.toString().length == 1) {
+    step = `0${step}`;
+    makeMove(step);
+  } else {
+    // check value
+    if (value !== -1) {
+      makeMove(step);
+    }
+  }
+};
+
+const handleArrowListener = (event) => {
+  if (event.defaultPrevented) {
+    return; // do nothing if the event was already processed
+  }
+
+  switch (event.key) {
+    case "Down":
+    case "ArrowDown":
+      makeKeyboardMove("d");
+      break;
+    case "Up":
+    case "ArrowUp":
+      makeKeyboardMove("u");
+      break;
+    case "Left":
+    case "ArrowLeft":
+      makeKeyboardMove("l");
+      break;
+    case "Right":
+    case "ArrowRight":
+      makeKeyboardMove("r");
+      break;
+    default:
+      return;
+  }
+
+  //  avoid being handled twice
+  event.preventDefault();
+};
+
+const addEventListener = () => {
+  window.addEventListener("keydown", handleArrowListener, true);
+};
+
+// set time used when counting
+const setTimePassed = (value) => {
+  timePassed.value = value;
+};
+
+const gameFinished = () => {
+  const data = {
+    foodEaten: foodEaten.value,
+    totalFood: totalFoodGenerated.value,
+    timeSpent: timePassed.value,
+  };
+  store.dispatch("gameFinished", data);
+  router.replace({ name: "game.finished" });
+};
+
+//
+watch(foodPositions.value, (food) => {
+  // console.log(food);
+  if (food.length <= 0) {
+    gameFinished();
+  }
+});
+
+// watch max moves
+watch(
+  totalMoves,
+  (moves) => {
+    if (moves === maxMoves.value) {
+      gameOver();
+    }
+  },
+  { immediate: true }
 );
+
+const gameOver = () => {
+  const data = {
+    foodEaten: foodEaten.value,
+    totalFood: totalFoodGenerated.value,
+    timeSpent: timePassed.value,
+  };
+  store.dispatch("gameFinished", data);
+  router.replace({ name: "game.over" });
+};
+
+onMounted(() => {
+  // insert player
+  insertPlayer();
+  // calculate food
+  calculateFoodPosition();
+
+  // insert foods
+  insertFoodsOnGrid();
+
+  // key events
+  addEventListener();
+
+  // grid  values
+  generateArrayValuesForGrid();
+});
+
+onBeforeRouteLeave(() => {
+  // remove event listener
+  window.removeEventListener("keydown", handleArrowListener, true);
+});
 </script>
 
 <style scoped>
@@ -101,14 +416,14 @@ onMounted(
 
 .rows {
   widows: 100%;
-  height: 50px;
+  height: 40px;
   display: flex;
   justify-content: space-between;
 }
 
 .cols {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border: 1px solid #853594;
 }
 
