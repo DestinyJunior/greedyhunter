@@ -386,11 +386,8 @@ const gameOver = () => {
 const adaptsToSize = () => {
   if (window.screen.width <= 640) {
     if (cols.value > 6) {
-      colSize.width = "27px";
-      colSize.height = "27px";
-    } else if (cols.value < 6) {
-      colSize.width = "40px";
-      colSize.height = "40px";
+      colSize.width = "30px";
+      colSize.height = "30px";
     }
   } else {
     colSize.width = "40px";
