@@ -2,7 +2,7 @@
   <div class="bg-img">
     <div class="z-10 inset-0 overflow-y-auto">
       <div
-        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        class="flex items-end justify-center min-h-screen pt-4 px-1 sm:px-4 pb-20 text-center sm:block sm:p-0"
       >
         <span
           class="hidden sm:inline-block sm:align-middle sm:h-screen"
@@ -11,14 +11,14 @@
         >
 
         <div
-          class="inline-block align-middle rounded-lg text-left overflow-hidden transform transition-all sm:my-8 sm:max-w-lg sm:w-full"
+          class="inline-block align-middle rounded-lg text-left overflow-hidden transform transition-all sm:my-8 w-full sm:max-w-lg sm:w-full"
         >
-          <div class="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="px-1 sm:px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div
               class="w-full bg-white flex flex-col items-center justify-center space-y-5 rounded-lg px-7 py-4"
             >
               <div class="w-full flex items-center justify-between">
-                <span class="text-purple-990 text-sm"
+                <span class="text-purple-990 text-xs sm:text-sm"
                   >Grid:
                   <span class="font-bold">{{ rows + " x " + cols }}</span></span
                 >
@@ -28,7 +28,7 @@
                     v-on:timepassed="setTimePassed"
                   />
                 </div>
-                <span class="text-purple-990 text-sm"
+                <span class="text-purple-990 text-xs sm:text-sm"
                   >Time spent:
                   <span class="font-bold"
                     ><Timer :endDate="endGameDate" v-on:gameover="gameOver" />
@@ -37,15 +37,18 @@
                 >
               </div>
               <div class="card">
-                <div class="card-top"></div>
-                <div class="grids">
+                <div class="grids flex flex-col">
                   <div v-for="(row, rowIndex) in rows" :key="rowIndex">
-                    <div class="rows">
+                    <div class="rows" :style="{ height: colSize.height }">
                       <div v-for="(col, colIndex) in rows" :key="colIndex">
                         <!-- insert player position -->
 
                         <span
                           @click="makeMove(`${rowIndex}${colIndex}`)"
+                          :style="{
+                            width: colSize.width,
+                            height: colSize.height,
+                          }"
                           class="cols flex items-center justify-center"
                           :id="'col-' + rowIndex + colIndex"
                         >
@@ -57,12 +60,12 @@
               </div>
 
               <div class="w-full flex items-center justify-between">
-                <span class="text-purple-990 text-sm"
+                <span class="text-purple-990 text-xs sm:text-sm"
                   >Maximum moves:
                   <span class="font-bold">{{ maxMoves }}</span></span
                 >
 
-                <span class="text-purple-990 text-sm"
+                <span class="text-purple-990 text-xs sm:text-sm"
                   >Total moves:
                   <span class="font-bold">{{ totalMoves }}</span></span
                 >
@@ -81,7 +84,7 @@ import Progress from "../components/Progress.vue";
 
 import { onBeforeRouteLeave } from "vue-router";
 
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, reactive } from "vue";
 import router from "../core/router.js";
 import store from "../core/store/store.js";
 
@@ -92,6 +95,9 @@ let totalMoves = ref(0);
 let totalFoodGenerated = ref(0);
 let foodEaten = ref(0);
 let playerPosition = ref(0);
+
+// width and height variable
+let colSize = reactive({ width: ref("40px"), height: ref("40px") });
 
 const maxMoves = ref(cols.value * Math.floor(cols.value / 2));
 
@@ -376,7 +382,26 @@ const gameOver = () => {
   router.replace({ name: "game.over" });
 };
 
+// device with detection
+const adaptsToSize = () => {
+  if (window.screen.width <= 640) {
+    if (cols.value > 6) {
+      colSize.width = "27px";
+      colSize.height = "27px";
+    } else if (cols.value < 6) {
+      colSize.width = "40px";
+      colSize.height = "40px";
+    }
+  } else {
+    colSize.width = "40px";
+    colSize.height = "40px";
+  }
+};
+
+window.addEventListener("resize", adaptsToSize);
+
 onMounted(() => {
+  adaptsToSize();
   // insert player
   insertPlayer();
   // calculate food
@@ -395,35 +420,27 @@ onMounted(() => {
 onBeforeRouteLeave(() => {
   // remove event listener
   window.removeEventListener("keydown", handleArrowListener, true);
+  window.removeEventListener("resize", adaptsToSize);
 });
 </script>
 
 <style scoped>
 .card {
   background-color: #fff;
-  width: max-content;
+  /* width: 100%; */
 }
 
 .card .grids {
   border: 2px solid #853594;
 }
 
-.grids {
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-}
-
 .rows {
-  widows: 100%;
-  height: 40px;
+  /* width: 100%; */
   display: flex;
   justify-content: space-between;
 }
 
 .cols {
-  width: 40px;
-  height: 40px;
   border: 1px solid #853594;
 }
 
@@ -435,4 +452,12 @@ onBeforeRouteLeave(() => {
   background-position: center;
   background-size: cover;
 }
+
+/* @media (min-width: 640px) {
+  cols
+   width: 25px;
+  height: 25px;
+
+   height: 25px;
+} */
 </style>

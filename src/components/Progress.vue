@@ -1,7 +1,7 @@
 <template>
   <div class="w-full flex items-center">
-    <img src="/images/svg/life.svg" class="w-9 z-50" alt="Life" />
-    <div class="progress w-16 h-3 -ml-2 flex">
+    <img src="/images/svg/life.svg" class="w-6 sm:w-9 z-50" alt="Life" />
+    <div class="progress w-8 sm:w-16 h-2 sm:h-3 -ml-2 flex">
       <div id="indicator" class="h-100 indicator"></div>
     </div>
   </div>
@@ -13,11 +13,6 @@ export default {
   props: {
     timeLimit: {
       type: Number,
-    },
-    negative: {
-      // optional, should countdown after 0 to negative
-      type: Boolean,
-      default: false,
     },
   },
   data() {
@@ -46,7 +41,6 @@ export default {
           this.timeLeft = timeLim - this.timePassed;
           this.updateProgressColor();
           this.$emit("timepassed", this.timePassed);
-          if (this.negative) return;
           if (this.timeLeft === 0) {
             clearInterval(this.timer);
           }
