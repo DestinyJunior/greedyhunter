@@ -29,6 +29,16 @@
                   Time Spent:
                   <span class="font-bold">{{ timeSpent }} seconds</span>
                 </p>
+                <p class="text-base">
+                  Moves:
+                  <span class="font-bold">{{
+                    totalMoves + "/" + maxMoves
+                  }}</span>
+                </p>
+                <p class="text-base">
+                  Grid Size:
+                  <span class="font-bold">{{ size }}</span>
+                </p>
               </div>
 
               <!--input game grid -->
@@ -42,10 +52,26 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import GridInput from "../components/GridInput.vue";
-
 import store from "../core/store/store.js";
 
-const timeSpent = store.state.timeSpent;
+export default {
+  components: {
+    GridInput,
+  },
+  setup() {
+    const timeSpent = store.state.timeSpent;
+    const totalMoves = store.state.totalMoves;
+    const maxMoves = store.state.maxMoves;
+    const size = store.state.size;
+
+    return {
+      timeSpent,
+      totalMoves,
+      size,
+      maxMoves,
+    };
+  },
+};
 </script>

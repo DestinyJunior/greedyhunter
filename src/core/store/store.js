@@ -8,6 +8,8 @@ const gameStore = createStore({
       foodEaten: null,
       totalFood: null,
       timeSpent: null,
+      totalMoves: null,
+      maxMoves: null,
     };
   },
   // getters: {
@@ -40,6 +42,13 @@ const gameStore = createStore({
       state.foodEaten = data.foodEaten;
       state.totalFood = data.totalFood;
       state.timeSpent = data.timeSpent;
+    },
+    SET_TOTAL_MOVES(state, moves) {
+      state.totalMoves = moves;
+    },
+
+    SET_MAX_MOVES(state, moves) {
+      state.maxMoves = moves;
     },
   },
 });

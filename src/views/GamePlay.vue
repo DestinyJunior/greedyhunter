@@ -99,7 +99,15 @@ let playerPosition = ref(0);
 // width and height variable
 let colSize = reactive({ width: ref("40px"), height: ref("40px") });
 
-const maxMoves = ref(cols.value * Math.floor(cols.value / 2));
+let maxMoves = ref(0);
+
+if (cols.value < 6) {
+  maxMoves.value = cols.value * Math.floor(cols.value / 2) + cols.value - 1;
+  store.commit("SET_MAX_MOVES", maxMoves.value);
+} else {
+  maxMoves.value = cols.value * Math.floor(cols.value / 2) + 1;
+  store.commit("SET_MAX_MOVES", maxMoves.value);
+}
 
 const timePassed = ref(0);
 
@@ -238,6 +246,7 @@ const movePlayer = ({ stepToId, stepFromId, isFood }) => {
     //increment total food eaten and total moves
     foodEaten.value++;
     totalMoves.value++;
+    store.commit("SET_TOTAL_MOVES", totalMoves.value);
     // calulate remaining food
     calcRemFood(stepFromId);
   } else {
@@ -403,9 +412,10 @@ onMounted(() => {
   insertPlayer();
   // calculate food
   calculateFoodPosition();
+  //pagead2.googlesyndication.com/pagead/js/adsbygoogle.js
 
   // insert foods
-  insertFoodsOnGrid();
+  https: insertFoodsOnGrid();
 
   // key events
   addEventListener();
